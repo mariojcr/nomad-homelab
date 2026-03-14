@@ -46,6 +46,7 @@ server {
 
   {{- if .Tags | contains "private_access=true" }}
   allow {{ with nomadVar "nomad/jobs" }}{{ .home_cidr }}{{ end }};
+  allow {{ with nomadVar "nomad/jobs" }}{{ .home_vpn_cidr }}{{ end }};
   deny all;
   {{- end }}
 

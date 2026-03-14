@@ -4,6 +4,12 @@ job "gitea" {
 
   group "svc" {
 
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "data" {
       type   = "host"
       source = "gitea-data"
@@ -82,7 +88,7 @@ job "gitea" {
       }
 
       config {
-        image = "docker.io/postgres:17.8-alpine"
+        image = "docker.io/postgres:17.9-alpine"
       }
 
       template {

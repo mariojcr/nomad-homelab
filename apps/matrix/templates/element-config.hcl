@@ -17,7 +17,6 @@ variable "element_config" {
   },
   "show_labs_settings": true,
   "features": {
-    "feature_group_calls": true,
     "feature_video_rooms": true,
     "feature_element_call_video_rooms": true,
     "feature_pinning": true,
@@ -28,11 +27,7 @@ variable "element_config" {
   "element_call": {
     "url": "https://matrix-call.__DOMAIN__",
     "use_exclusively": true,
-    "participant_limit": 8,
     "brand": "Element Call"
-  },
-  "jitsi": {
-    "preferred_domain": ""
   },
   "setting_defaults": {
     "urlPreviewsEnabled": true,

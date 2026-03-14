@@ -3,6 +3,13 @@ job "qbittorrent" {
   type        = "service"
 
   group "qbittorrent" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "downloads" {
       source = "qbittorrent-downloads"
       type   = "host"

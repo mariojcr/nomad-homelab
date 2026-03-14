@@ -6,6 +6,13 @@ job "gitea-runner" {
     # Aumenta count para más paralelismo de CI jobs
     count = 2
 
+    update {
+      max_parallel     = 1
+      health_check     = "task_states"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     service {
       name         = "gitea-runner"
       port         = 8080

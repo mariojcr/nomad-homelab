@@ -3,6 +3,13 @@ job "load-balancer" {
   type        = "service"
 
   group "nginx" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "letsencrypt" {
       type      = "host"
       source    = "letsencrypt"

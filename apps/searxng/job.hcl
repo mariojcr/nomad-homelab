@@ -3,6 +3,13 @@ job "searxng" {
   datacenters = __DATACENTER__
 
   group "searxng" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "data" {
       type   = "host"
       source = "searxng-data"

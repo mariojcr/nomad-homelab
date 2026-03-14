@@ -4,6 +4,12 @@ job "matrix" {
 
   group "synapse" {
 
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "data" {
       type   = "host"
       source = "matrix-synapse"
@@ -141,6 +147,12 @@ EOH
 
   group "web" {
 
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     service {
       port         = 8080
       address_mode = "alloc"
@@ -269,6 +281,12 @@ EOH
   }
 
   group "auth" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
 
     volume "mas-data" {
       type   = "host"
@@ -400,6 +418,12 @@ EOH
 
   group "rtc" {
 
+    update {
+      health_check     = "task_states"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     service {
       port         = 7880
       address_mode = "alloc"
@@ -500,6 +524,12 @@ EOH
   }
 
   group "call" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
 
     service {
       port         = 8080

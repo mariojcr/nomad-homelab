@@ -3,6 +3,13 @@ job "immich" {
   datacenters = __DATACENTER__
 
   group "immich" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "data" {
       type   = "host"
       source = "immich-data"
