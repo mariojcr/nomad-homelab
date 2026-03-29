@@ -3,6 +3,13 @@ job "materialious" {
   datacenters = __DATACENTER__
 
   group "materialious" {
+
+    update {
+      health_check     = "checks"
+      min_healthy_time = "10s"
+      healthy_deadline = "5m"
+    }
+
     volume "materialious-data" {
       type   = "host"
       source = "materialious-data"
@@ -70,7 +77,7 @@ job "materialious" {
       }
 
       config {
-        image = "docker.io/wardpearce/materialious-full:1.16.6"
+        image = "docker.io/wardpearce/materialious-full:1.16.23"
       }
 
       template {

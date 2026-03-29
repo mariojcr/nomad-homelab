@@ -141,7 +141,7 @@ job "immich" {
       driver = "podman"
 
       config {
-        image = "docker.io/valkey/valkey:9.0.3-alpine"
+        image = "docker.io/valkey/valkey:9.1-alpine"
       }
 
       resources {

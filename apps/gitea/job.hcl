@@ -121,7 +121,7 @@ EOH
       }
 
       config {
-        image = "docker.io/gitea/gitea:1.25.4"
+        image = "docker.io/gitea/gitea:1.25.5"
       }
 
       template {

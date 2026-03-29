@@ -73,7 +73,7 @@ job "grafana" {
       user = "root"
 
       config {
-        image = "docker.io/grafana/grafana:12.4.0"
+        image = "docker.io/grafana/grafana:12.4.2"
       }
 
       volume_mount {

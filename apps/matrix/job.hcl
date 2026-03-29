@@ -115,7 +115,7 @@ EOH
       }
 
       config {
-        image = "ghcr.io/element-hq/synapse:v1.148.0"
+        image = "ghcr.io/element-hq/synapse:v1.150.0"
         volumes = [
           "local/homeserver.yaml:/data/homeserver.yaml:ro",
           "local/log.config:/data/log.config:ro",
@@ -231,7 +231,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/element-web:v1.12.11"
+        image = "ghcr.io/element-hq/element-web:v1.12.13"
         volumes = [
           "local/config.json:/app/config.json:ro",
         ]
@@ -257,7 +257,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "oci.element.io/element-admin:0.1.10"
+        image = "oci.element.io/element-admin:0.1.11"
         volumes = [
           "local/admin-nginx.conf:/etc/nginx/conf.d/default.conf:ro",
         ]
@@ -393,7 +393,7 @@ EOH
       }
 
       config {
-        image   = "ghcr.io/element-hq/matrix-authentication-service:1.12.0"
+        image   = "ghcr.io/element-hq/matrix-authentication-service:1.14.0"
         volumes = [
           "local/config.yaml:/config/config.yaml:ro",
         ]
@@ -480,7 +480,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "docker.io/livekit/livekit-server:v1.9.11"
+        image = "docker.io/livekit/livekit-server:v1.10.0"
         args  = ["--config", "/local/livekit.yaml"]
       }
 
@@ -587,7 +587,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/element-call:v0.17.0"
+        image = "ghcr.io/element-hq/element-call:v0.18.0"
         volumes = [
           "local/config.json:/app/config.json:ro",
         ]

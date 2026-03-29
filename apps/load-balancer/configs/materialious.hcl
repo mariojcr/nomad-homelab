@@ -15,6 +15,7 @@ location /metrics {
 
 location / {
   proxy_pass http://$upstream;
+  proxy_buffering off;
 }
 EOT
 }

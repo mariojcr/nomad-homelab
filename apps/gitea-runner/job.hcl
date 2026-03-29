@@ -55,7 +55,7 @@ job "gitea-runner" {
       driver = "podman"
 
       config {
-        image   = "docker.io/gitea/act_runner:0.3.0"
+        image   = "docker.io/gitea/act_runner:0.3.1"
       }
 
       env {

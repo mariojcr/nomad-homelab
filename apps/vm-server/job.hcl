@@ -67,7 +67,7 @@ job "vm-server" {
       driver = "podman"
 
       config {
-        image = "docker.io/victoriametrics/victoria-metrics:v1.137.0"
+        image = "docker.io/victoriametrics/victoria-metrics:v1.138.0"
         args = [
           "-storageDataPath=/storage",
           "-httpListenAddr=0.0.0.0:8428",
@@ -89,7 +89,7 @@ job "vm-server" {
 
       resources {
         cpu    = 300
-        memory = 1024
+        memory = 2048
       }
 
     }

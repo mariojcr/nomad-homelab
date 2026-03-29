@@ -63,7 +63,7 @@ job "vm-agent" {
       driver = "podman"
 
       config {
-        image      = "docker.io/victoriametrics/vmagent:v1.137.0"
+        image      = "docker.io/victoriametrics/vmagent:v1.138.0"
         entrypoint = ["/local/entrypoint.sh"]
       }
 
