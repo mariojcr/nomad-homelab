@@ -1,14 +1,20 @@
-job "vm-agent" {
+job "vector" {
   datacenters = __DATACENTER__
   type        = "system"
-  priority    = 100
+  priority    = 80
 
-  group "agent" {
+  group "collector" {
+    volume "host-root" {
+      source    = "host-root"
+      type      = "host"
+      read_only = true
+    }
+
     network {
       mode = "cni/containers"
       cni {
         args = {
-          NOMAD_JOB_HOSTNAME = "vm-agent-monitoring"
+          NOMAD_JOB_HOSTNAME = "vector-monitoring"
         }
       }
     }
@@ -20,10 +26,10 @@ job "vm-agent" {
     }
 
     service {
+      name         = "vector"
+      port         = 8686
       provider     = "nomad"
       address_mode = "alloc"
-      port         = 8429
-      name         = "vm-agent"
       tags = [
         "metrics=true"
       ]
@@ -33,7 +39,7 @@ job "vm-agent" {
         path         = "/health"
         interval     = "10s"
         timeout      = "2s"
-        port         = 8429
+        port         = 8686
       }
     }
 
@@ -44,8 +50,8 @@ job "vm-agent" {
         sidecar = true
       }
       config {
-        image      = "ghcr.io/mariojcr/net-nomad:1.0.0"
-        cap_add    = ["NET_ADMIN"]
+        image   = "ghcr.io/mariojcr/net-nomad:1.0.0"
+        cap_add = ["NET_ADMIN"]
       }
       template {
         data        = var.firewall_config
@@ -63,26 +69,36 @@ job "vm-agent" {
       driver = "podman"
 
       config {
-        image      = "docker.io/victoriametrics/vmagent:v1.139.0"
-        entrypoint = ["/local/entrypoint.sh"]
+        image      = "docker.io/timberio/vector:0.54.0-alpine"
+        entrypoint = ["/bin/sh", "-c"]
+        args       = ["mkdir -p /tmp/vector-state && exec vector --config /local/vector.toml"]
+      }
+
+      artifact {
+        source      = "https://download.db-ip.com/free/dbip-city-lite-2026-04.mmdb.gz"
+        destination = "local/GeoLite2-City.mmdb"
+        mode        = "file"
+        options {
+          archive = "gz"
+        }
       }
 
       template {
-        destination = "local/scrape.yaml"
-        data        = var.scrape_config
+        destination = "local/vector.toml"
+        data        = var.vector_config
       }
 
-      template {
-        destination = "local/entrypoint.sh"
-        data        = var.entrypoint_config
-        perms       = "755"
+      volume_mount {
+        volume      = "host-root"
+        destination = "/host"
+        read_only   = true
       }
 
       resources {
-        cpu    = 100
-        memory = 256
+        cpu        = 100
+        memory     = 384
+        memory_max = 512
       }
-
     }
   }
 }

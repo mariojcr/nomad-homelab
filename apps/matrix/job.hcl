@@ -480,7 +480,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "docker.io/livekit/livekit-server:v1.10.0"
+        image = "docker.io/livekit/livekit-server:v1.10.1"
         args  = ["--config", "/local/livekit.yaml"]
       }
 
@@ -500,7 +500,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/lk-jwt-service:0.4.1"
+        image = "ghcr.io/element-hq/lk-jwt-service:0.4.2"
       }
 
       template {

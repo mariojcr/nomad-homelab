@@ -1,18 +1,18 @@
-job "vm-server" {
+job "vl-server" {
   datacenters = __DATACENTER__
   type        = "service"
 
   group "server" {
     volume "data" {
       type   = "host"
-      source = "victoriametrics"
+      source = "victorialogs"
     }
 
     network {
       mode = "cni/containers"
       cni {
         args = {
-          NOMAD_JOB_HOSTNAME = "vm-server-monitoring"
+          NOMAD_JOB_HOSTNAME = "vl-server-monitoring"
         }
       }
     }
@@ -20,10 +20,15 @@ job "vm-server" {
     service {
       provider     = "nomad"
       address_mode = "alloc"
-      port         = 8428
-      name         = "vm-server"
+      port         = 9428
+      name         = "vl-server"
       tags = [
-        "metrics=true"
+        "metrics=true",
+        "nginx_enable=true",
+        "nginx_domain=logs.__DOMAIN__",
+        "nginx_certificate=__DOMAIN__",
+        "nginx_custom_config=victorialogs",
+        "private_access=true"
       ]
       check {
         address_mode = "alloc"
@@ -31,7 +36,7 @@ job "vm-server" {
         path         = "/health"
         interval     = "10s"
         timeout      = "2s"
-        port         = 8428
+        port         = 9428
       }
     }
 
@@ -48,8 +53,8 @@ job "vm-server" {
         sidecar = true
       }
       config {
-        image      = "ghcr.io/mariojcr/net-nomad:1.0.0"
-        cap_add    = ["NET_ADMIN"]
+        image   = "ghcr.io/mariojcr/net-nomad:1.0.0"
+        cap_add = ["NET_ADMIN"]
       }
       template {
         data        = var.firewall_config
@@ -67,18 +72,14 @@ job "vm-server" {
       driver = "podman"
 
       config {
-        image = "docker.io/victoriametrics/victoria-metrics:v1.139.0"
+        image = "docker.io/victoriametrics/victoria-logs:v1.48.0"
         args = [
           "-storageDataPath=/storage",
-          "-httpListenAddr=0.0.0.0:8428",
-          "-retentionPeriod=1y",
+          "-httpListenAddr=0.0.0.0:9428",
+          "-retentionPeriod=4w",
           "-memory.allowedPercent=60",
           "-search.maxConcurrentRequests=4",
           "-search.maxQueryDuration=30s",
-          "-search.maxQueueDuration=10s",
-          "-dedup.minScrapeInterval=10s",
-          "-logNewSeries=false",
-          "-cacheExpireDuration=30m"
         ]
       }
 
@@ -88,10 +89,9 @@ job "vm-server" {
       }
 
       resources {
-        cpu    = 300
-        memory = 2048
+        cpu    = 200
+        memory = 512
       }
-
     }
   }
 }

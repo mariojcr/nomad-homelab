@@ -10,5 +10,11 @@ datasources:
     access: proxy
     isDefault: true
     editable: true
+  - name: VictoriaLogs
+    uid: P4169E866C3094E39
+    type: victoriametrics-logs-datasource
+    url: http://{{ range nomadService "vl-server" }}{{ .Address }}:{{ .Port }}{{ end }}
+    access: proxy
+    editable: true
 EOH
 }

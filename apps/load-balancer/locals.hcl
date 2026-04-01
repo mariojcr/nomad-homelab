@@ -71,6 +71,10 @@ locals {
     {
       data        = var.materialious-conf
       destination = "local/conf/materialious.conf"
+    },
+    {
+      data        = var.victorialogs-conf
+      destination = "local/conf/victorialogs.conf"
     }
   ]
 }

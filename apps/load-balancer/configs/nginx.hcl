@@ -25,16 +25,65 @@ http {
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
 
-  map $args $request_string {
-    default $request_uri;
-    ''      $request_uri;
-    *       $request_uri$args;
+  # OTel normalization maps — pre-process fields nginx can derive cheaply
+  # so Vector doesn't have to touch these for every log line.
+  map $server_protocol $otel_protocol_version {
+    "HTTP/1.0"  "1.0";
+    "HTTP/1.1"  "1.1";
+    "HTTP/2.0"  "2";
+    "HTTP/3.0"  "3";
+    default     "";
   }
 
-  log_format main '[$time_local] $remote_addr '
-                  '"$host" $request_method "$request_string" $server_protocol $status $body_bytes_sent '
-                  'ref="$http_referer" ua="$http_user_agent" '
-                  'rt="$request_time" uct="$upstream_connect_time" uht="$upstream_header_time" urt="$upstream_response_time" cache="$upstream_cache_status"';
+  map $ssl_protocol $otel_tls_version {
+    "TLSv1.2"   "1.2";
+    "TLSv1.3"   "1.3";
+    default     "";
+  }
+
+  # IPv6 addresses contain ':', IPv4 don't
+  map $remote_addr $otel_network_type {
+    ~:        "ipv6";
+    default   "ipv4";
+  }
+
+  # error.type: status code string for 4xx/5xx, empty otherwise
+  map $status $otel_error_type {
+    ~^[45]    $status;
+    default   "";
+  }
+
+  log_format main escape=json
+    '{'
+      '"timestamp":"$time_iso8601",'
+      '"http.request.method":"$request_method",'
+      '"url.scheme":"$scheme",'
+      '"url.full":"$scheme://$host$request_uri",'
+      '"url.path":"$uri",'
+      '"url.query":"$is_args$args",'
+      '"http.response.status_code":$status,'
+      '"http.response.body.size":$body_bytes_sent,'
+      '"http.request.size":$request_length,'
+      '"http.request.header.referer":"$http_referer",'
+      '"user_agent.original":"$http_user_agent",'
+      '"client.address":"$remote_addr",'
+      '"client.port":$remote_port,'
+      '"server.address":"$host",'
+      '"server.port":$server_port,'
+      '"network.type":"$otel_network_type",'
+      '"network.protocol.name":"http",'
+      '"network.protocol.version":"$otel_protocol_version",'
+      '"tls.protocol.version":"$otel_tls_version",'
+      '"tls.cipher_suite":"$ssl_cipher",'
+      '"http.request.id":"$request_id",'
+      '"duration":$request_time,'
+      '"upstream.address":"$upstream_addr",'
+      '"upstream.status":"$upstream_status",'
+      '"upstream.connect_time":"$upstream_connect_time",'
+      '"upstream.header_time":"$upstream_header_time",'
+      '"upstream.response_time":"$upstream_response_time",'
+      '"error.type":"$otel_error_type"'
+    '}';
 
   access_log /dev/stdout main;
   error_log /dev/stderr;
