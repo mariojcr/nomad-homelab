@@ -108,9 +108,9 @@ job "vector" {
       }
 
       resources {
-        cpu        = 100
-        memory     = 384
-        memory_max = 512
+        cpu        = 200
+        memory     = 512
+        memory_max = 2048
       }
     }
   }

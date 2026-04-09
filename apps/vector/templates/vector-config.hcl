@@ -14,23 +14,19 @@ type = "mmdb"
 path = "/local/GeoLite2-City.mmdb"
 
 # ── Sources ───────────────────────────────────────────────────────────────────
-
 [sources.nomad_logs]
 type      = "file"
-# Match all rotation indices (.0, .1, .2 ...) not just the active file.
-# Nomad renames .0 → .1 on rotation; the old `.0`-only glob abandoned the
-# rotated file after rotate_wait_ms (5 s), losing any unread backlog.
-# Persistent checkpoints (ephemeral_disk) prevent re-reading already-seen data.
 include   = [
-  "/host/var/lib/nomad/alloc/*/alloc/logs/*.stdout.*",
-  "/host/var/lib/nomad/alloc/*/alloc/logs/*.stderr.*",
+  "/host/var/lib/nomad/alloc/*/alloc/logs/*.stdout.0",
+  "/host/var/lib/nomad/alloc/*/alloc/logs/*.stderr.0",
 ]
-read_from = "beginning"
-# Give Vector extra time to drain a rotated file before abandoning the old inode.
-rotate_wait_ms = 30000
+exclude = [
+  "/host/var/lib/nomad/alloc/*/alloc/logs/*.fifo",
+]
+read_from = "end"
+rotate_wait_secs = 30
 
 # ── Transforms ────────────────────────────────────────────────────────────────
-
 [transforms.parse_path]
 type   = "remap"
 inputs = ["nomad_logs"]
@@ -44,11 +40,17 @@ source = '''
   .host        = get_env_var("NOMAD_NODE_NAME") ?? get_hostname!()
   del(.source_type)
 
-  # Nomad log lines have format: "<timestamp> <stream> F <content>"
-  # Strip the prefix to get the actual log content
-  line, line_err = parse_regex(.message, r'^\S+\s+\S+\s+[FP]\s+(?P<content>.*)$')
+  # Capture the Nomad-prefix timestamp so historical logs keep their original
+  # time instead of the Vector ingestion time. For JSON logs (e.g. nginx),
+  # the merge below will overwrite .timestamp with the more precise value
+  # embedded in the JSON (nginx time_iso8601 variable).
+  line, line_err = parse_regex(.message, r'^(?P<ts>\S+)\s+\S+\s+[FP]\s+(?P<content>.*)$')
   if line_err == null {
     .message = line.content
+    ts, ts_err = parse_timestamp(line.ts, "%+")
+    if ts_err == null {
+      .timestamp = ts
+    }
   }
 
   # Promote JSON fields to top level for structured log emitters (e.g. nginx)
@@ -107,10 +109,6 @@ source = '''
 '''
 
 # ── Sinks ─────────────────────────────────────────────────────────────────────
-# Always configure the sink as "victoria_logs" (never switch to a different sink
-# name) so that hot-reloads via SIGHUP preserve the in-memory buffer during
-# short vl-server outages. When vl-server is unavailable, Vector retries against
-# 127.0.0.1 (which fails fast) until the real address is restored.
 {{ $vl := nomadService "vl-server" }}
 {{ if gt (len $vl) 0 }}{{ with index $vl 0 }}
 [sinks.victoria_logs]
@@ -136,11 +134,9 @@ method = "newline_delimited"
 max_bytes    = 1048576
 timeout_secs = 5
 
-# Buffer up to ~50 k events in memory so short vl-server restarts don't lose data.
-# Oldest events are silently dropped only if the buffer is entirely full.
 [sinks.victoria_logs.buffer]
 type       = "memory"
 max_events = 50000
-when_full  = "drop_oldest"
+when_full  = "drop_newest"
 EOH
 }
