@@ -68,7 +68,7 @@ job "node-exporter" {
       driver = "podman"
 
       config {
-        image        = "docker.io/prom/node-exporter:v1.10.2"
+        image        = "docker.io/prom/node-exporter:v1.11.1"
         args = [
           "--path.rootfs=/host",
           "--path.procfs=/host/proc/",

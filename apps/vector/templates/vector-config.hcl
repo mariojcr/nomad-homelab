@@ -1,7 +1,7 @@
 variable "vector_config" {
   description = "Vector configuration for Nomad log collection"
   default     = <<EOH
-data_dir = "/tmp/vector-state"
+data_dir = "/alloc/data/vector-state"
 
 [api]
 enabled = true
@@ -17,8 +17,17 @@ path = "/local/GeoLite2-City.mmdb"
 
 [sources.nomad_logs]
 type      = "file"
-include   = ["/host/var/lib/nomad/alloc/*/alloc/logs/*.std*.0"]
-read_from = "end"
+# Match all rotation indices (.0, .1, .2 ...) not just the active file.
+# Nomad renames .0 → .1 on rotation; the old `.0`-only glob abandoned the
+# rotated file after rotate_wait_ms (5 s), losing any unread backlog.
+# Persistent checkpoints (ephemeral_disk) prevent re-reading already-seen data.
+include   = [
+  "/host/var/lib/nomad/alloc/*/alloc/logs/*.stdout.*",
+  "/host/var/lib/nomad/alloc/*/alloc/logs/*.stderr.*",
+]
+read_from = "beginning"
+# Give Vector extra time to drain a rotated file before abandoning the old inode.
+rotate_wait_ms = 30000
 
 # ── Transforms ────────────────────────────────────────────────────────────────
 
@@ -98,15 +107,24 @@ source = '''
 '''
 
 # ── Sinks ─────────────────────────────────────────────────────────────────────
-
+# Always configure the sink as "victoria_logs" (never switch to a different sink
+# name) so that hot-reloads via SIGHUP preserve the in-memory buffer during
+# short vl-server outages. When vl-server is unavailable, Vector retries against
+# 127.0.0.1 (which fails fast) until the real address is restored.
 {{ $vl := nomadService "vl-server" }}
-{{ if gt (len $vl) 0 }}
-{{ range $vl }}
+{{ if gt (len $vl) 0 }}{{ with index $vl 0 }}
 [sinks.victoria_logs]
 type   = "http"
 inputs = ["normalize"]
 uri    = "http://{{ .Address }}:{{ .Port }}/insert/jsonline?_stream_fields=alloc_id,task,stream,host,server.address,geo.country.iso_code&_msg_field=message&_time_field=timestamp"
 method = "post"
+{{ end }}{{ else }}
+[sinks.victoria_logs]
+type   = "http"
+inputs = ["normalize"]
+uri    = "http://127.0.0.1:9428/insert/jsonline?_stream_fields=alloc_id,task,stream,host,server.address,geo.country.iso_code&_msg_field=message&_time_field=timestamp"
+method = "post"
+{{ end }}
 
 [sinks.victoria_logs.encoding]
 codec = "json"
@@ -117,11 +135,12 @@ method = "newline_delimited"
 [sinks.victoria_logs.batch]
 max_bytes    = 1048576
 timeout_secs = 5
-{{ end }}
-{{ else }}
-[sinks.blackhole]
-type   = "blackhole"
-inputs = ["normalize"]
-{{ end }}
+
+# Buffer up to ~50 k events in memory so short vl-server restarts don't lose data.
+# Oldest events are silently dropped only if the buffer is entirely full.
+[sinks.victoria_logs.buffer]
+type       = "memory"
+max_events = 50000
+when_full  = "drop_oldest"
 EOH
 }

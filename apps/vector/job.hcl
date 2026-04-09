@@ -4,6 +4,14 @@ job "vector" {
   priority    = 80
 
   group "collector" {
+    # Persist file checkpoints across alloc replacements so Vector
+    # doesn't lose track of read positions when it restarts.
+    ephemeral_disk {
+      migrate = true
+      sticky  = true
+      size    = 150
+    }
+
     volume "host-root" {
       source    = "host-root"
       type      = "host"
@@ -71,7 +79,7 @@ job "vector" {
       config {
         image      = "docker.io/timberio/vector:0.54.0-alpine"
         entrypoint = ["/bin/sh", "-c"]
-        args       = ["mkdir -p /tmp/vector-state && exec vector --config /local/vector.toml"]
+        args       = ["mkdir -p /alloc/data/vector-state && exec vector --config /local/vector.toml"]
       }
 
       artifact {
@@ -84,8 +92,13 @@ job "vector" {
       }
 
       template {
-        destination = "local/vector.toml"
-        data        = var.vector_config
+        destination   = "local/vector.toml"
+        data          = var.vector_config
+        # Hot-reload instead of full restart when vl-server address changes.
+        # This preserves the in-memory sink buffer and file checkpoints.
+        change_mode   = "signal"
+        change_signal = "SIGHUP"
+        splay         = "5s"
       }
 
       volume_mount {

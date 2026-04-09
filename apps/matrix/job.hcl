@@ -115,7 +115,7 @@ EOH
       }
 
       config {
-        image = "ghcr.io/element-hq/synapse:v1.150.0"
+        image = "ghcr.io/element-hq/synapse:v1.151.0"
         volumes = [
           "local/homeserver.yaml:/data/homeserver.yaml:ro",
           "local/log.config:/data/log.config:ro",
@@ -231,7 +231,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/element-web:v1.12.13"
+        image = "ghcr.io/element-hq/element-web:v1.12.15"
         volumes = [
           "local/config.json:/app/config.json:ro",
         ]
@@ -393,7 +393,7 @@ EOH
       }
 
       config {
-        image   = "ghcr.io/element-hq/matrix-authentication-service:1.14.0"
+        image   = "ghcr.io/element-hq/matrix-authentication-service:1.15.0"
         volumes = [
           "local/config.yaml:/config/config.yaml:ro",
         ]
@@ -587,7 +587,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/element-call:v0.18.0"
+        image = "ghcr.io/element-hq/element-call:v0.19.0"
         volumes = [
           "local/config.json:/app/config.json:ro",
         ]

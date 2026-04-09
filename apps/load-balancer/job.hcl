@@ -73,7 +73,7 @@ job "load-balancer" {
     task "nginx" {
       driver = "podman"
       config {
-        image      = "docker.io/nginx:1.29.7-alpine"
+        image      = "docker.io/nginx:1.29.8-alpine"
         volumes = [
           "local/nginx.conf:/etc/nginx/nginx.conf",
           "local/conf/:/etc/nginx/conf/",

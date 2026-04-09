@@ -31,7 +31,7 @@ job "certbot" {
       }
 
       config {
-        image = "docker.io/certbot/dns-ovh:v5.4.0"
+        image = "docker.io/certbot/dns-ovh:v5.5.0"
         args  = ["renew"]
       }
 

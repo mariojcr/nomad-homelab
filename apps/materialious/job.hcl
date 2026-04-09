@@ -77,7 +77,7 @@ job "materialious" {
       }
 
       config {
-        image = "docker.io/wardpearce/materialious-full:1.16.23"
+        image = "docker.io/wardpearce/materialious-full:1.16.24"
       }
 
       template {

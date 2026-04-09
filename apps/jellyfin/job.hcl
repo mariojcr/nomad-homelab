@@ -152,7 +152,7 @@ job "jellyfin" {
       }
 
       config {
-        image   = "ghcr.io/jellyfin/jellyfin:10.11.7"
+        image   = "ghcr.io/jellyfin/jellyfin:10.11.8"
         devices = ["/dev/dri/renderD128"]
       }
 

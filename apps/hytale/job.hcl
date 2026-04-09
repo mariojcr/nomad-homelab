@@ -61,7 +61,7 @@ job "hytale" {
       }
 
       config {
-        image              = "docker.io/eclipse-temurin:25.0.2_10-jre"
+        image              = "docker.io/eclipse-temurin:26-jre"
         image_pull_timeout = "30m"
         working_dir        = "/hytale/Servidor"
         entrypoint         = ["/bin/bash", "-c"]
