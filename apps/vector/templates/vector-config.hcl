@@ -25,6 +25,9 @@ exclude = [
 ]
 read_from = "end"
 rotate_wait_secs = 30
+# Cap individual log line size to 256 KB. Lines larger than this (e.g. huge
+# stack traces or base64 blobs) are truncated rather than buffered in full.
+max_read_bytes = 262144
 
 # ── Transforms ────────────────────────────────────────────────────────────────
 [transforms.parse_path]
@@ -34,11 +37,13 @@ source = '''
   path_parts, err = parse_regex(.file, r'/host/var/lib/nomad/alloc/(?P<alloc_id>[^/]+)/alloc/logs/(?P<task>[^.]+)\.(?P<stream>stdout|stderr)\.')
   if err != null { abort }
 
-  .alloc_id    = path_parts.alloc_id
-  .task        = path_parts.task
-  .stream      = path_parts.stream
-  .host        = get_env_var("NOMAD_NODE_NAME") ?? get_hostname!()
+  ."service.instance.id" = path_parts.alloc_id
+  ."service.name"    = path_parts.task
+  ."log.iostream"    = path_parts.stream
+  ."host.name"       = "{{ env "node.unique.name" }}"
   del(.source_type)
+  del(.file)
+  del(.host)
 
   # Capture the Nomad-prefix timestamp so historical logs keep their original
   # time instead of the Vector ingestion time. For JSON logs (e.g. nginx),
@@ -81,23 +86,6 @@ source = '''
     }
   }
 
-  # Remove empty fields emitted by nginx maps when not applicable
-  # (e.g. tls.* on plain HTTP, error.type for 2xx/3xx responses)
-  if ."tls.protocol.version" == ""     { del(."tls.protocol.version") }
-  if ."tls.cipher_suite" == ""         { del(."tls.cipher_suite") }
-  if ."network.protocol.version" == "" { del(."network.protocol.version") }
-  if ."error.type" == ""               { del(."error.type") }
-
-  # Convert upstream times to float; nginx emits "-" when no upstream
-  uct = string(."upstream.connect_time") ?? "-"
-  ."upstream.connect_time" = if uct == "-" || uct == "" { null } else { to_float(uct) ?? null }
-
-  uht = string(."upstream.header_time") ?? "-"
-  ."upstream.header_time" = if uht == "-" || uht == "" { null } else { to_float(uht) ?? null }
-
-  urt = string(."upstream.response_time") ?? "-"
-  ."upstream.response_time" = if urt == "-" || urt == "" { null } else { to_float(urt) ?? null }
-
   # Parse user agent
   ua = string(."user_agent.original") ?? ""
   if ua != "" {
@@ -114,13 +102,13 @@ source = '''
 [sinks.victoria_logs]
 type   = "http"
 inputs = ["normalize"]
-uri    = "http://{{ .Address }}:{{ .Port }}/insert/jsonline?_stream_fields=alloc_id,task,stream,host,server.address,geo.country.iso_code&_msg_field=message&_time_field=timestamp"
+uri    = "http://{{ .Address }}:{{ .Port }}/insert/jsonline?_stream_fields=host.name,service.name,log.iostream,server.address&_msg_field=message&_time_field=timestamp"
 method = "post"
 {{ end }}{{ else }}
 [sinks.victoria_logs]
 type   = "http"
 inputs = ["normalize"]
-uri    = "http://127.0.0.1:9428/insert/jsonline?_stream_fields=alloc_id,task,stream,host,server.address,geo.country.iso_code&_msg_field=message&_time_field=timestamp"
+uri    = "http://127.0.0.1:9428/insert/jsonline?_stream_fields=host.name,service.name,log.iostream,server.address&_msg_field=message&_time_field=timestamp"
 method = "post"
 {{ end }}
 

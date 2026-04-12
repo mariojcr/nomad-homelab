@@ -53,6 +53,40 @@ http {
     default   "";
   }
 
+  # Clean url.query: use $args (without leading ?)
+  map $args $otel_url_query {
+    ""      "";
+    default $args;
+  }
+
+  # Clean optional string fields: emit empty instead of "-"
+  map $http_referer $otel_referer {
+    ""      "";
+    default $http_referer;
+  }
+
+  map $upstream_addr $otel_upstream_addr {
+    "-"     "";
+    ""      "";
+    default $upstream_addr;
+  }
+
+  # Upstream times as numbers: emit 0 when no upstream (nginx writes "-")
+  map $upstream_connect_time $otel_upstream_connect_time {
+    ~^[0-9.]+$  $upstream_connect_time;
+    default     0;
+  }
+
+  map $upstream_header_time $otel_upstream_header_time {
+    ~^[0-9.]+$  $upstream_header_time;
+    default     0;
+  }
+
+  map $upstream_response_time $otel_upstream_response_time {
+    ~^[0-9.]+$  $upstream_response_time;
+    default     0;
+  }
+
   log_format main escape=json
     '{'
       '"timestamp":"$time_iso8601",'
@@ -60,11 +94,11 @@ http {
       '"url.scheme":"$scheme",'
       '"url.full":"$scheme://$host$request_uri",'
       '"url.path":"$uri",'
-      '"url.query":"$is_args$args",'
+      '"url.query":"$otel_url_query",'
       '"http.response.status_code":$status,'
       '"http.response.body.size":$body_bytes_sent,'
       '"http.request.size":$request_length,'
-      '"http.request.header.referer":"$http_referer",'
+      '"http.request.header.referer":"$otel_referer",'
       '"user_agent.original":"$http_user_agent",'
       '"client.address":"$remote_addr",'
       '"client.port":$remote_port,'
@@ -77,11 +111,11 @@ http {
       '"tls.cipher_suite":"$ssl_cipher",'
       '"http.request.id":"$request_id",'
       '"duration":$request_time,'
-      '"upstream.address":"$upstream_addr",'
+      '"upstream.address":"$otel_upstream_addr",'
       '"upstream.status":"$upstream_status",'
-      '"upstream.connect_time":"$upstream_connect_time",'
-      '"upstream.header_time":"$upstream_header_time",'
-      '"upstream.response_time":"$upstream_response_time",'
+      '"upstream.connect_time":$otel_upstream_connect_time,'
+      '"upstream.header_time":$otel_upstream_header_time,'
+      '"upstream.response_time":$otel_upstream_response_time,'
       '"error.type":"$otel_error_type"'
     '}';
 
