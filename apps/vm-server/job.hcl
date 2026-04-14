@@ -67,7 +67,7 @@ job "vm-server" {
       driver = "podman"
 
       config {
-        image = "docker.io/victoriametrics/victoria-metrics:v1.139.0"
+        image = "docker.io/victoriametrics/victoria-metrics:v1.140.0"
         args = [
           "-storageDataPath=/storage",
           "-httpListenAddr=0.0.0.0:8428",

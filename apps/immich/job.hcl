@@ -96,7 +96,7 @@ job "immich" {
       }
 
       config {
-        image   = "ghcr.io/immich-app/immich-server:v2.5.6"
+        image   = "ghcr.io/immich-app/immich-server:v2.7.5"
         devices = ["/dev/dri/renderD128"]
       }
 
@@ -121,7 +121,7 @@ job "immich" {
       }
 
       config {
-        image   = "ghcr.io/immich-app/immich-machine-learning:v2.5.6"
+        image   = "ghcr.io/immich-app/immich-machine-learning:v2.7.5"
         devices = ["/dev/dri/renderD128"]
       }
 

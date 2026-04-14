@@ -21,9 +21,17 @@
       "versioning": "loose"
     },
     {
-      "description": "Postgres - mantener tag alpine",
+      "description": "Postgres Gitea - mantener major 17 con tag alpine",
       "matchPackageNames": ["docker.io/postgres"],
-      "allowedVersions": "/^[\\d._]+-alpine$/",
+      "matchFileNames": ["apps/gitea/**"],
+      "allowedVersions": "/^17\\.\\d+-alpine$/",
+      "versioning": "loose"
+    },
+    {
+      "description": "Postgres Matrix - mantener major 18 con tag alpine",
+      "matchPackageNames": ["docker.io/postgres"],
+      "matchFileNames": ["apps/matrix/**"],
+      "allowedVersions": "/^18\\.\\d+-alpine$/",
       "versioning": "loose"
     },
     {

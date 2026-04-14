@@ -73,7 +73,7 @@ job "grafana" {
       user = "root"
 
       config {
-        image = "docker.io/grafana/grafana:12.4.2"
+        image = "docker.io/grafana/grafana:13.0.0"
       }
 
       volume_mount {
@@ -102,7 +102,7 @@ job "grafana" {
 
       resources {
         cpu    = 200
-        memory = 256
+        memory = 512
       }
 
       restart {
