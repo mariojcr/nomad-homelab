@@ -27,7 +27,9 @@ upstream {{ .Name | toLower }} {
 
 server {
   listen 443 ssl;
+  listen 443 quic;
   http2 on;
+  add_header_inherit on;
   server_name {{ $domain }};
 
   ssl_certificate /etc/letsencrypt/live/{{ $certificate }}/fullchain.pem;
@@ -40,9 +42,8 @@ server {
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header X-Forwarded-Proto $scheme;
   proxy_set_header X-Forwarded-Host $http_host;
-  proxy_set_header Connection $http_connection;
   proxy_set_header Upgrade $http_upgrade;
-  proxy_http_version 1.1;
+  proxy_set_header Connection $connection_upgrade;
 
   {{- if .Tags | contains "private_access=true" }}
   allow {{ with nomadVar "nomad/jobs" }}{{ .home_cidr }}{{ end }};

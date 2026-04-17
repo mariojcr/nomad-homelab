@@ -71,6 +71,12 @@ http {
     default $upstream_addr;
   }
 
+  # WebSocket: set Connection header only when Upgrade is present
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      '';
+  }
+
   # Upstream times as numbers: emit 0 when no upstream (nginx writes "-")
   map $upstream_connect_time $otel_upstream_connect_time {
     ~^[0-9.]+$  $upstream_connect_time;
@@ -134,6 +140,7 @@ http {
   ssl_dhparam /etc/letsencrypt/dhparam.pem;
 
   add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+  add_header Alt-Svc 'h3=":443"; ma=86400' always;
 
   server {
     listen 80 default_server;
@@ -149,12 +156,13 @@ http {
     }
 
     location / {
-      return 301 https://$host$request_uri;
+      return 444;
     }
   }
 
   server {
     listen 443 ssl default_server;
+    listen 443 quic default_server;
     http2 on;
     ssl_reject_handshake on;
   }

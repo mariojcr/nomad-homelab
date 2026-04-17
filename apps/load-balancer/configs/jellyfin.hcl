@@ -23,6 +23,7 @@ location /socket {
 }
 
 location ~ /Items/(.*)/Images {
+  add_header_inherit on;
   proxy_pass http://$upstream;
   proxy_cache jellyfin;
   proxy_cache_revalidate on;

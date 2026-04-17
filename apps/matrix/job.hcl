@@ -480,7 +480,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "docker.io/livekit/livekit-server:v1.10.1"
+        image = "docker.io/livekit/livekit-server:v1.11.0"
         args  = ["--config", "/local/livekit.yaml"]
       }
 
@@ -500,7 +500,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/lk-jwt-service:0.4.2"
+        image = "ghcr.io/element-hq/lk-jwt-service:0.4.3"
       }
 
       template {
@@ -587,7 +587,7 @@ EOH
       driver = "podman"
 
       config {
-        image = "ghcr.io/element-hq/element-call:v0.19.0"
+        image = "ghcr.io/element-hq/element-call:v0.19.1"
         volumes = [
           "local/config.json:/app/config.json:ro",
         ]

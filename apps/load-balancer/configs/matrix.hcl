@@ -14,6 +14,7 @@ add_header Permissions-Policy "interest-cohort=()" always;
 add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none';" always;
 
 location = /.well-known/matrix/client {
+  add_header_inherit on;
   proxy_hide_header Access-Control-Allow-Origin;
   add_header Access-Control-Allow-Origin * always;
   add_header X-Robots-Tag "noindex, nofollow, noarchive, noimageindex" always;

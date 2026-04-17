@@ -27,8 +27,8 @@ job "load-balancer" {
     }
 
     service {
-      name         = "load-balancer-http"
-      port         = 80
+      name         = "load-balancer"
+      port         = 443
       provider     = "nomad"
       address_mode = "alloc"
       check {
@@ -39,13 +39,6 @@ job "load-balancer" {
         timeout      = "2s"
         port         = 80
       }
-    }
-
-    service {
-      name         = "load-balancer-https"
-      port         = 443
-      provider     = "nomad"
-      address_mode = "alloc"
     }
 
     task "network-rules" {
@@ -73,7 +66,7 @@ job "load-balancer" {
     task "nginx" {
       driver = "podman"
       config {
-        image      = "docker.io/nginx:1.29.8-alpine"
+        image      = "docker.io/nginx:1.30.0-alpine"
         volumes = [
           "local/nginx.conf:/etc/nginx/nginx.conf",
           "local/conf/:/etc/nginx/conf/",
